@@ -2,6 +2,9 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import produce from "immer";
 import "./App.css";
 import Grid from "./components/Grid";
+import * as presets from "./components/presetArrays/PresetArray";
+import Rules from "./components/Rules";
+import useInterval from "./components/UseInterval";
 
 let operations = [
   [0, 1],
@@ -15,8 +18,14 @@ let operations = [
 ];
 
 function App() {
-  const numRows = 30;
-  const numCols = 30;
+  const numRows = 50;
+  const numCols = 50;
+  const [generation, setGeneration] = useState(0);
+  // const [size, setSize] = useState(100);
+  const [speed, setSpeed] = useState(1500);
+  const [running, setRunning] = useState(false);
+
+  // const gridRef = useRef
 
   const generateEmptyGrid = () => {
     const rows = [];
@@ -31,22 +40,17 @@ function App() {
     return generateEmptyGrid();
   });
 
-  const [generation, setGeneration] = useState(0);
-
   function checkGrid(i, k) {
     const newGrid = produce(grid, (gridCopy) => {
       gridCopy[i][k] = grid[i][k] ? 0 : 1;
     });
     setGrid(newGrid);
   }
-  const [speed, setSpeed] = useState(500);
-
-  const [running, setRunning] = useState(false);
 
   const runningRef = useRef(running);
   runningRef.current = running;
 
-  const runSimulation = useCallback(() => {
+  const runSimulation = () => {
     if (!runningRef.current) {
       return;
     }
@@ -77,15 +81,16 @@ function App() {
     });
 
     if (validGrid) {
-      setGeneration((e) => (e += 1));
+      setGeneration((prevState) => (prevState += 1));
     }
-  }, []);
+  };
+  useInterval(runSimulation, speed);
 
-  useEffect(() => {
-    const interval = setInterval(runSimulation, speed);
+  // useEffect(() => {
+  //   const interval = setInterval(runSimulation, speed);
 
-    return () => clearInterval(interval);
-  }, [runSimulation, speed]);
+  //   return () => clearInterval(interval);
+  // }, [runSimulation, speed]);
 
   function startSimulation() {
     setRunning(!running);
@@ -109,24 +114,48 @@ function App() {
   function resetGrid() {
     setGrid(generateEmptyGrid());
     setGeneration(0);
+    setRunning(!running);
   }
 
   function changeSpeed(e) {
     let value = e.target.value;
     setSpeed(value);
   }
-  console.log(speed);
+
+  // function changeGridSize(e) {
+  //   setSize(e.target.value);
+  // }
+  // console.log(grid);
+  // // console.log(size);
+  // // console.log(speed);
+
+  function stepThroughSimulation() {}
   return (
     <div className="App">
+      <h1 style={{ fontSize: "3em", padding: "20px 0" }}>
+        Conway's Game Of Life
+      </h1>
       <div
         className="buttons"
         style={{
-          width: "90%",
+          width: "49%",
           display: "flex",
-          justifyContent: "center",
+          justifyContent: "space-between",
         }}
       >
-        <p>Generation number {generation}</p>
+        <p>Generation number: {generation}</p>
+        {/* <img src="https://www.conwaylife.com/w/images/a/a0/Tumbler.gif"></img> */}
+        <span>Select Pattern</span>
+        <select defaultValue="default" name="preset">
+          <option value="default" disabled hidden>
+            Choose here
+          </option>
+          <option onClick={() => setGrid(presets.gosperGliderGun)}>
+            Glider{" "}
+          </option>
+          <option onClick={() => setGrid(presets.pulsar)}>Pulsar </option>
+          <option onClick={() => setGrid(presets.diamond)}>Diamond </option>
+        </select>
         <button onClick={() => startSimulation()}>
           {running ? "stop" : "start"}
         </button>
@@ -138,17 +167,23 @@ function App() {
           clear
         </button>
         <button onClick={() => createRandomGrid()}>random </button>
-        <input
-          style={{ direction: "rtl" }}
-          id="speed"
-          onChange={changeSpeed}
-          type="range"
-          min={200}
-          max={800}
-          value={speed}
-        ></input>
+        <label>
+          Speed
+          <input
+            style={{ direction: "rtl" }}
+            id="speed"
+            onChange={changeSpeed}
+            type="range"
+            min={200}
+            max={3000}
+            value={speed}
+          ></input>
+        </label>
       </div>
-      <Grid checkGrid={checkGrid} grid={grid} />
+      <div style={{ display: "flex" }}>
+        <Grid checkGrid={checkGrid} grid={grid} running={running} />
+        <Rules />
+      </div>
     </div>
   );
 }

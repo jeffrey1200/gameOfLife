@@ -1,5 +1,24 @@
 .App {
   margin: 0 auto;
+  width: 80%;
+  text-align: center;
+}
+
+.rules-container {
+  padding-left: 25px;
+}
+.rules-container h2 {
+  font-size: 2em;
+}
+
+.rules-container p {
+  font-size: 1.7em;
+  padding: 20px 0;
+}
+
+.rules-container li {
+  font-size: 1.5em;
+  padding: 10px 0;
 }
 
 /* .App-logo {
